@@ -15,6 +15,30 @@ def char_limit(word)
   end
 end 
 
-puts char_limit(random_line)
 
+class GameBoard
+  puts "      
+         ___
+        |   |
+            |
+            |
+            |
+        ____|____"
+
+  game_word = char_limit(random_line)
+  guesses_remaining = 10
+  puts guesses_remaining
+  puts game_word
+
+end 
+
+hangman = GameBoard.new
+
+puts "      
+   ___
+  |   |
+  O   |
+`-|-` |
+_/ \\_ |
+  ____|____"
 
