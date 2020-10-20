@@ -12,9 +12,8 @@
 # 8. Give player the option to save and quit at the beginning of each turn 
 # 9. At beginning, allow new game to start or open and continue saved game 
 $incorrect = []
-$correct = []
-$all_guesses = [" "," "," ",]
-$hangman_shapes = ["0","|","-","-","/","\\","`","`"]
+$inserted_shapes = [" "," "," "," "," "," "," "," "," "," ",]
+$hangman_shapes = ["O","|","-","-","/","\\","`","`","_","_"]
 
 def random_line
   dictionary = File.readlines("dictionary.txt")
@@ -40,9 +39,9 @@ class GameBoard
     puts "      
            ___
           |   |
-          #{$all_guesses[0]}   |
-              |
-              |
+          #{$inserted_shapes[0]}   |
+         #{$inserted_shapes[2]}#{$inserted_shapes[1]}#{$inserted_shapes[3]}  |
+         #{$inserted_shapes[4]} #{$inserted_shapes[5]}  |
           ____|____"
           puts "Correct: #{$correct}"
   end 
@@ -61,13 +60,14 @@ class PlayGame
   def evaluate(guess)
     if @word_arr.include? guess  
       $correct.insert(@word_arr.index(guess), guess) 
-      puts "Correct guesses: #{$correct}"
-      puts "Incorrect guesses: #{$incorrect}"
+      puts "Correct guesses: #{$correct.join}"
+      puts "Incorrect guesses: #{$incorrect.join}"
     else 
-      $incorrect += [guess]
-      puts "Correct guesses: #{$correct.join(", ")}"
-      puts "Incorrect guesses: #{$incorrect.join(", ")}"
-      $all_guesses[0] = "O"
+      $incorrect.push(guess)
+      @guesses -= 1
+      puts "Correct guesses: #{$correct.join}"
+      puts "Incorrect guesses: #{$incorrect.join}"
+      $inserted_shapes.insert($incorrect.length-1, $hangman_shapes[$incorrect.length-1])
     end 
   end 
 
@@ -77,7 +77,6 @@ class PlayGame
       user_guess = gets.chomp
       GameBoard.display
       evaluate(user_guess)
-      @guesses -= 1
     end 
   end 
 end 
@@ -87,7 +86,8 @@ end
 
 
 
-game_word = char_limit(random_line)  
+game_word = char_limit(random_line) 
+$correct = Array.new(game_word.length, "_")
 guesses_remaining = 10
 hangman = GameBoard.new
 PlayGame.new(game_word, guesses_remaining)
