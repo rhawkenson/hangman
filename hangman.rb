@@ -14,10 +14,13 @@
 # 8. Give player the option to save and quit at the beginning of each turn 
 # 9. At beginning, allow new game to start or open and continue saved game 
 
+def open_game
+  File.open('saved_game', 'w')
+end 
 
-$incorrect = []
-$inserted_shapes = [" "," "," "," "," "," "," "," "," "," ",]
-$hangman_shapes = ["O","|","-","-","/","\\","`","`","_","_"]
+def save_game
+  puts "This is supposed to save the game"
+end
 
 def random_line
   dictionary = File.readlines("dictionary.txt")
@@ -39,10 +42,21 @@ end
 
 class GameBoard
   def beginning
-    puts "\n\n\n\n\nThese are the rules and instructions!"
+    puts "\n\n\n\n\n Welcome to hangman! Would you like to start a new game or open a saved game?
+    Type 'new' for a new game or type 'open' to open a saved game"
+    game = gets.chomp
+    if game == 'new'
+      puts "\n\n\n\n\nThese are the rules and instructions! If you want to quit and save, type 'save' instead of your guess during any turn."
+      guesses_remaining = 10
+      PlayGame.new($game_word, guesses_remaining)
+    elsif game == 'open'
+      open_game
+    else 
+      "Invalid selection. Type 'new' for a new game or type 'open' to open a saved game"
+    end 
   end
+
   def self.display
-    
     puts "      
            ___
           |   |
@@ -64,9 +78,12 @@ class PlayGame
 
   
   def evaluate(guess)
-    if guess.length > 1
+    if guess == 'save'
+      puts "end of game"
+      $save = true
+    elsif guess.length > 1
       puts "Invalid guess. Please only enter one letter with no special characters or spaces"
-    elsif ($correct.include? guess) || ($incorrect.include? guess) 
+    elsif($correct.include? guess) || ($incorrect.include? guess) 
       puts "You have already guessed that letter. Please try again."
     elsif @word_arr.include? guess  
         @word_arr.each_with_index do |letter, index| 
@@ -84,40 +101,46 @@ class PlayGame
 
   def display_update
     GameBoard.display
-    puts "Correct guesses: #{$correct.join}"
+    puts "\nCorrect guesses: #{$correct.join}"
     puts "Incorrect guesses: #{$incorrect.join}"
+    puts "Remaining guesses: #{@guesses}"
   end 
   
 
   def play
-    until (@word_arr == $correct) || (@guesses == 0) do 
+    until (@word_arr == $correct) || (@guesses == 0) || ($save == true) do 
       puts "\n\nWhat is your guess?"
       user_guess = gets.chomp
       evaluate(user_guess)
     end 
 
     if @guesses == 0
-      puts " The word you were looking for was '#{$game_word}'"
+      puts " The word you were looking for was '#{$game_word}'\n\n"
     
     elsif @word_arr == $correct
-      puts "YOU WIN! You are a master wordsmith. Congratulations!"
-
+      puts "YOU WIN! You are a master wordsmith. Congratulations!\n\n"
+    
+    elsif $save == true
+      puts "You have chosen to save and exit. To reopen this game, start Hangman and type 'open' when prompted."
+      save_game
     else
-      puts "Hmm something is not working properly.."
+      puts "Hmm something is not working properly..\n\n"
     end 
-  end 
+  end  
 end 
 
-  #puts "You guessed #{user_guess}."
 
 
-
-
-$game_word = char_limit(random_line) 
+$incorrect = []
+$inserted_shapes = [" "," "," "," "," "," "," "," "," "," ",]
+$hangman_shapes = ["O","|","-","-","/","\\","`","`","_","_"]
+$game_word = char_limit(random_line)
 $correct = Array.new($game_word.length, "_")
-guesses_remaining = 10
-hangman = GameBoard.new
-PlayGame.new($game_word, guesses_remaining)
+$save = false
+
+Hangman = GameBoard.new
+Hangman.beginning
+
 
 
 
