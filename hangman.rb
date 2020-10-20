@@ -7,10 +7,14 @@
 # 5. Create turns, prompt for user guess 
 # 6. Update the display after each turn 
 #     - write to the document for purposes of saving the file 
+#     - base the stick man's growths on the length of a guesses array
 # 7. If guesses = 0, end the game and reveal the word 
 # 8. Give player the option to save and quit at the beginning of each turn 
 # 9. At beginning, allow new game to start or open and continue saved game 
-
+$incorrect = []
+$correct = []
+$all_guesses = [" "," "," ",]
+$hangman_shapes = ["0","|","-","-","/","\\","`","`"]
 
 def random_line
   dictionary = File.readlines("dictionary.txt")
@@ -31,38 +35,54 @@ end
 
 
 class GameBoard
-  puts "\n\n\n\n\nThese are the rules and instructions!"
-  puts "      
-         ___
-        |   |
-            |
-            |
-            |
-        ____|____"
+  def self.display
+    puts "\n\n\n\n\nThese are the rules and instructions!"
+    puts "      
+           ___
+          |   |
+          #{$all_guesses[0]}   |
+              |
+              |
+          ____|____"
+          puts "Correct: #{$correct}"
+  end 
 end 
 
 
 class PlayGame
   def initialize(word, guesses)
     @word = word
+    @word_arr = @word.split("")
     @guesses = guesses
-    puts "\n\nWhat is your guess?"
-    user_guess = gets.chomp
-    evaluate(user_guess)
-
+    play
   end 
-  
+
   
   def evaluate(guess)
-    if @word.include? guess  
-      puts "correct!" 
+    if @word_arr.include? guess  
+      $correct.insert(@word_arr.index(guess), guess) 
+      puts "Correct guesses: #{$correct}"
+      puts "Incorrect guesses: #{$incorrect}"
     else 
-      puts "try again please"
+      $incorrect += [guess]
+      puts "Correct guesses: #{$correct.join(", ")}"
+      puts "Incorrect guesses: #{$incorrect.join(", ")}"
+      $all_guesses[0] = "O"
     end 
   end 
 
-  #puts "You guessed #{user_guess}."
+  def play
+    until (@word_arr == $correct) || (@guesses == 0) do 
+      puts "\n\nWhat is your guess?"
+      user_guess = gets.chomp
+      GameBoard.display
+      evaluate(user_guess)
+      @guesses -= 1
+    end 
+  end 
 end 
+
+  #puts "You guessed #{user_guess}."
 
 
 
