@@ -1,0 +1,24 @@
+---
+- !ruby/object:PlayGame
+  word: espouse
+  word_arr:
+  - e
+  - s
+  - p
+  - o
+  - u
+  - s
+  - e
+  guesses: 8
+  correct:
+  - _
+  - s
+  - _
+  - _
+  - _
+  - s
+  - _
+  incorrect:
+  - a
+  - d
+  save: true

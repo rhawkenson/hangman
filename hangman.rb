@@ -13,64 +13,61 @@
 # 7. If guesses = 0, end the game and reveal the word 
 # 8. Give player the option to save and quit at the beginning of each turn 
 # 9. At beginning, allow new game to start or open and continue saved game 
+require 'yaml'
 
-
-def open_game
-  puts "What username did you use to save your file?"
-  username = gets.chomp
-  play_saved = File.read("saved_games/game_#{username}.txt")
-  puts play_saved
-end 
-
-def save_game
-  puts "What username would you like to use to save your file?"
-  username = gets.chomp
-  puts "Your file is called game_#{username}.txt"
-  
-  dirname = "saved_games"
-  Dir.mkdir(dirname) unless File.exist? dirname
-  
-  filename = "saved_games/game_#{username}.txt"
-  File.write(filename, Hangman)
-end
-
-def random_line
-  dictionary = File.readlines("dictionary.txt")
-  line_number = rand(0..(dictionary.length)) 
-  chosen_line = dictionary[line_number].downcase.chomp
-  chosen_line
-end
-
-def char_limit(word)
-  if word.length > 12
-    char_limit(random_line)
-  elsif word.length < 5
-    char_limit(random_line)
-  else 
-    word
+class Word
+  attr_reader :game_word
+  def initialize
+    @game_word = char_limit(random_line)
   end
-end 
+
+  private
+  def random_line
+    dictionary = File.readlines("dictionary.txt")
+    line_number = rand(0..(dictionary.length)) 
+    chosen_line = dictionary[line_number].downcase.chomp
+    chosen_line
+  end
+
+  def char_limit(word)
+    if word.length > 12
+      char_limit(random_line)
+    elsif word.length < 5
+      char_limit(random_line)
+    else 
+      word
+    end
+  end 
+end
 
 
 class GameBoard
+  attr_reader :game_word
+  def initialize
+    @game_word = Word.new.game_word
+    beginning
+  end 
+
   def beginning
     puts "\n\n\n\n\n Welcome to hangman! Would you like to start a new game or open a saved game?
     Type 'new' for a new game or type 'open' to open a saved game"
     game = gets.chomp
     if game == 'new'
-      puts "\n\n\n\n\nThese are the rules and instructions! If you want to quit and save, type 'save' instead of your guess during any turn."
+      puts "\n\n\n\n\nInstructions: You have 10 guesses to figure out the secret word. Only incorrect guesses will count against you. If you want to quit and save, type 'save' instead of your guess during any turn."
       guesses_remaining = 10
-      PlayGame.new($game_word, guesses_remaining)
+      PlayGame.new(@game_word, guesses_remaining)
     elsif game == 'open'
-      open_game
+      load_game
+    #---------?????------------
     else 
       "Invalid selection. Type 'new' for a new game or type 'open' to open a saved game"
-    end 
+      beginning
+    end  
   end
 
   def self.display
-    puts "      
-           ___
+    @display = puts "      
+          ___
           |   |
           #{$inserted_shapes[0]}   |
         #{$inserted_shapes[6]}#{$inserted_shapes[2]}#{$inserted_shapes[1]}#{$inserted_shapes[3]}#{$inserted_shapes[7]} |
@@ -80,61 +77,107 @@ class GameBoard
 end 
 
 
-class PlayGame
+class PlayGame < GameBoard
+  attr_accessor :word, :word_arr, :guesses, :correct, :incorrect, :save
   def initialize(word, guesses)
     @word = word
     @word_arr = @word.split("")
     @guesses = guesses
+    @correct = Array.new(@word.length, "_")
+    @incorrect = Array.new
+    @save = false
     play
   end 
 
-  
+
+  def save_game
+    puts "What username would you like to use to save your game?"
+    username = gets.chomp
+    dirname = "saved_games"
+    Dir.mkdir(dirname) unless File.exist? dirname
+    puts "You game file is called 'saved_games/game_#{username}.yml"
+    
+    filename = "saved_games/game_#{username}.yml"
+    File.open(filename, 'w') { |f| YAML.dump([] << self, f) }
+    exit
+  end 
+
+  def load_game
+    unless Dir.exist?('saved_games')
+      puts 'No saved games found. Starting new game...'
+      sleep(5)
+      return
+    end
+    games = saved_games
+    puts games
+    deserialize(load_file(games))
+  end
+
+  def load_file(games)
+    loop do
+      puts "What username did you use to save your game?"
+      username = gets.chomp
+      return username if games.include?("game_#{username}.yml")
+      puts 'The game you requested does not exist.'
+    end
+  end
+
+  def deserialize(load_file)
+    yaml = YAML.load_file("./saved_games/game_#{username}.yml")
+    self.word = yaml[0].word
+    self.word_arr = yaml[0].word_arr
+    self.guesses = yaml[0].guesses
+    self.correct = yaml[0].correct
+    self.incorrect = yaml[0].incorrect
+    self.save = yaml[0].save
+  end
+
   def evaluate(guess)
     if guess == 'save'
       puts "end of game"
-      $save = true
+      @save = true
+      save_game
     elsif guess.length > 1
       puts "Invalid guess. Please only enter one letter with no special characters or spaces"
-    elsif($correct.include? guess) || ($incorrect.include? guess) 
+    elsif(@correct.include? guess) || (@incorrect.include? guess) 
       puts "You have already guessed that letter. Please try again."
     elsif @word_arr.include? guess  
         @word_arr.each_with_index do |letter, index| 
           if letter == guess  
-            $correct[index] = letter 
+            @correct[index] = letter 
           end 
         end 
     else 
-      $incorrect.push(guess)
+      @incorrect.push(guess)
       @guesses -= 1
-      $inserted_shapes.insert($incorrect.length-1, $hangman_shapes[$incorrect.length-1])
+      $inserted_shapes.insert(@incorrect.length-1, $hangman_shapes[@incorrect.length-1])
     end 
     display_update
   end 
 
   def display_update
     GameBoard.display
-    puts "\nCorrect guesses: #{$correct.join}"
-    puts "Incorrect guesses: #{$incorrect.join}"
+    puts "\nCorrect guesses: #{@correct.join}"
+    puts "Incorrect guesses: #{@incorrect.join}"
     puts "Remaining guesses: #{@guesses}"
   end 
   
 
   def play
-    until (@word_arr == $correct) || (@guesses == 0) || ($save == true) do 
+    until (@word_arr == @correct) || (@guesses == 0) || (@save == true) do 
       puts "\n\nWhat is your guess?"
       user_guess = gets.chomp
       evaluate(user_guess)
     end 
 
     if @guesses == 0
-      puts " The word you were looking for was '#{$game_word}'\n\n"
+      puts " The word you were looking for was '#{@word}'\n\n"
     
-    elsif @word_arr == $correct
+    elsif @word_arr == @correct
       puts "YOU WIN! You are a master wordsmith. Congratulations!\n\n"
     
-    elsif $save == true
+    elsif @save == true
       puts "You have chosen to save and exit. To reopen this game, start Hangman and type 'open' when prompted."
-      save_game
     else
       puts "Hmm something is not working properly..\n\n"
     end 
@@ -142,16 +185,10 @@ class PlayGame
 end 
 
 
-
-$incorrect = []
 $inserted_shapes = [" "," "," "," "," "," "," "," "," "," ",]
 $hangman_shapes = ["O","|","-","-","/","\\","`","`","_","_"]
-$game_word = char_limit(random_line)
-$correct = Array.new($game_word.length, "_")
-$save = false
 
 Hangman = GameBoard.new
-Hangman.beginning
 
 
 
