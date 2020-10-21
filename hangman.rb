@@ -14,26 +14,24 @@
 # 8. Give player the option to save and quit at the beginning of each turn 
 # 9. At beginning, allow new game to start or open and continue saved game 
 
-require 'yaml'
-
 
 def open_game
   puts "What username did you use to save your file?"
   username = gets.chomp
-  play_saved = YAML.load File.read("saved_games/game_#{username}.yaml")
+  play_saved = File.read("saved_games/game_#{username}.txt")
   puts play_saved
 end 
 
 def save_game
   puts "What username would you like to use to save your file?"
   username = gets.chomp
-  puts "Your file is called game_#{username}.yaml"
+  puts "Your file is called game_#{username}.txt"
+  
   dirname = "saved_games"
   Dir.mkdir(dirname) unless File.exist? dirname
-  filename = "saved_games/game_#{username}.yaml"
-  File.open("filename", "w") do |file|
-    file.puts "content!!!!!!"  
-  end 
+  
+  filename = "saved_games/game_#{username}.txt"
+  File.write(filename, Hangman)
 end
 
 def random_line
