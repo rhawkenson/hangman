@@ -1,0 +1,21 @@
+---
+- !ruby/object:PlayGame
+  word: major
+  word_arr:
+  - m
+  - a
+  - j
+  - o
+  - r
+  guesses: 7
+  correct:
+  - _
+  - _
+  - _
+  - _
+  - _
+  incorrect:
+  - s
+  - f
+  - t
+  save: true

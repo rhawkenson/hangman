@@ -56,9 +56,9 @@ class GameBoard
     if game == 'new'
       puts "\n\n\n\n\nInstructions: You have 10 guesses to figure out the secret word. Only incorrect guesses will count against you. If you want to quit and save, type 'save' instead of your guess during any turn."
       guesses_remaining = 10
-      $correct_guesses = Array.new(@game_word.length, "_")
-      $incorrect_guesses = Array.new
-      PlayGame.new(@game_word, guesses_remaining)
+      @correct_guesses = Array.new(@game_word.length, "_")
+      @incorrect_guesses = Array.new
+      PlayGame.new(@game_word, guesses_remaining, @correct_guesses, @incorrect_guesses)
     elsif game == 'open'
       PlayGame.load_game
     else 
@@ -81,7 +81,7 @@ end
 
 class PlayGame 
   attr_accessor :word, :word_arr, :guesses, :correct, :incorrect, :save
-  def initialize(word, guesses, correct = $correct_guesses, incorrect = $incorrect_guesses)
+  def initialize(word, guesses, correct = yaml[0].correct, incorrect = yaml[0].incorrect)
     @word = word
     @word_arr = @word.split("")
     @guesses = guesses
@@ -175,16 +175,8 @@ class PlayGame
   end 
 
   def self.deserialize(username)
-    
     yaml = YAML.load_file("./saved_games/#{username}.yml")
-    @word = yaml[0].word
-    @word_arr = yaml[0].word_arr
-    @guesses = yaml[0].guesses
-    @correct = yaml[0].correct
-    @incorrect = yaml[0].incorrect
-
     PlayGame.new(yaml[0].word, yaml[0].guesses, yaml[0].correct, yaml[0].incorrect)
-
   end
 
   def self.saved_games

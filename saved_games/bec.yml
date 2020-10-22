@@ -1,0 +1,30 @@
+---
+- !ruby/object:PlayGame
+  word: harrisburg
+  word_arr:
+  - h
+  - a
+  - r
+  - r
+  - i
+  - s
+  - b
+  - u
+  - r
+  - g
+  guesses: 8
+  correct:
+  - _
+  - a
+  - _
+  - _
+  - _
+  - _
+  - _
+  - _
+  - _
+  - _
+  incorrect:
+  - d
+  - t
+  save: true

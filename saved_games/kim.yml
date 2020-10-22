@@ -1,0 +1,23 @@
+---
+- !ruby/object:PlayGame
+  word: grouse
+  word_arr:
+  - g
+  - r
+  - o
+  - u
+  - s
+  - e
+  guesses: 7
+  correct:
+  - _
+  - _
+  - _
+  - _
+  - s
+  - e
+  incorrect:
+  - f
+  - t
+  - a
+  save: true
