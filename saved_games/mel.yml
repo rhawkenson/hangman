@@ -1,0 +1,25 @@
+---
+- !ruby/object:PlayGame
+  word: carolyn
+  word_arr:
+  - c
+  - a
+  - r
+  - o
+  - l
+  - y
+  - n
+  guesses: 5
+  correct:
+  - _
+  - _
+  - r
+  - _
+  - l
+  - y
+  - _
+  incorrect:
+  - f
+  - ''
+  - t
+  save: true

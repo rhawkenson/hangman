@@ -56,6 +56,8 @@ class GameBoard
     if game == 'new'
       puts "\n\n\n\n\nInstructions: You have 10 guesses to figure out the secret word. Only incorrect guesses will count against you. If you want to quit and save, type 'save' instead of your guess during any turn."
       guesses_remaining = 10
+      $correct_guesses = Array.new(@game_word.length, "_")
+      $incorrect_guesses = Array.new
       PlayGame.new(@game_word, guesses_remaining)
     elsif game == 'open'
       PlayGame.load_game
@@ -67,7 +69,7 @@ class GameBoard
 
   def self.display
     @display = puts "      
-          ___
+           ___
           |   |
           #{$inserted_shapes[0]}   |
         #{$inserted_shapes[6]}#{$inserted_shapes[2]}#{$inserted_shapes[1]}#{$inserted_shapes[3]}#{$inserted_shapes[7]} |
@@ -77,14 +79,14 @@ class GameBoard
 end 
 
 
-class PlayGame < GameBoard
+class PlayGame 
   attr_accessor :word, :word_arr, :guesses, :correct, :incorrect, :save
-  def initialize(word, guesses)
+  def initialize(word, guesses, correct = $correct_guesses, incorrect = $incorrect_guesses)
     @word = word
     @word_arr = @word.split("")
     @guesses = guesses
-    @correct = Array.new(@word.length, "_")
-    @incorrect = Array.new
+    @correct = correct
+    @incorrect = incorrect
     @save = false
     play
   end 
@@ -97,7 +99,7 @@ class PlayGame < GameBoard
     end 
 
     if @guesses == 0
-      puts " The word you were looking for was '#{@word}'\n\n"
+      puts "The word you were looking for was '#{@word}'\n\n"
     
     elsif @word_arr == @correct
       puts "YOU WIN! You are a master wordsmith. Congratulations!\n\n"
@@ -111,7 +113,6 @@ class PlayGame < GameBoard
 
   def evaluate(guess)
     if guess == 'save'
-      puts "end of game"
       @save = true
       save_game
     elsif guess.length > 1
@@ -144,19 +145,17 @@ class PlayGame < GameBoard
     username = gets.chomp
     dirname = "saved_games"
     Dir.mkdir(dirname) unless File.exist? dirname
-    puts "You game file is called 'saved_games/game_#{username}.yml"
+    puts "You game file is called 'saved_games/#{username}.yml"
     
-    filename = "saved_games/game_#{username}.yml"
+    filename = "saved_games/#{username}.yml"
     File.open(filename, 'w') { |f| YAML.dump([] << self, f) }
     exit
-  end 
-
-  
+  end
 
   def self.load_game
     unless Dir.exist?('saved_games')
       puts 'No saved games found. Starting new game...'
-      sleep(5)
+      GameBoard.new
       return
     end
     games = saved_games
@@ -166,30 +165,31 @@ class PlayGame < GameBoard
   def self.load_file(games)
     loop do
       puts "What username did you use to save your game?"
+      puts "Users:"
+      puts saved_games
       username = gets.chomp
-      file = "game_#{username}"
+      file = "#{username}"
       return username if saved_games.include?(file)
       puts 'The game you requested does not exist.'
     end
   end 
 
   def self.deserialize(username)
-    yaml = YAML.load_file("./saved_games/game_#{username}.yml")
-     
+    
+    yaml = YAML.load_file("./saved_games/#{username}.yml")
     @word = yaml[0].word
     @word_arr = yaml[0].word_arr
     @guesses = yaml[0].guesses
     @correct = yaml[0].correct
     @incorrect = yaml[0].incorrect
-    @save = yaml[0].save 
 
-    #  PlayGame.new(@word, @guesses)
+    PlayGame.new(yaml[0].word, yaml[0].guesses, yaml[0].correct, yaml[0].incorrect)
+
   end
 
   def self.saved_games
     Dir['./saved_games/*'].map { |file| file.split('/')[-1].split('.')[0] }
   end
-
 end 
 
 
