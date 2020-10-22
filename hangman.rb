@@ -15,6 +15,7 @@
 # 9. At beginning, allow new game to start or open and continue saved game 
 require 'yaml'
 
+
 class Word
   attr_reader :game_word
   def initialize
@@ -57,8 +58,7 @@ class GameBoard
       guesses_remaining = 10
       PlayGame.new(@game_word, guesses_remaining)
     elsif game == 'open'
-      load_game
-    #---------?????------------
+      PlayGame.load_game
     else 
       "Invalid selection. Type 'new' for a new game or type 'open' to open a saved game"
       beginning
@@ -88,49 +88,26 @@ class PlayGame < GameBoard
     @save = false
     play
   end 
+  
+  def play
+    until (@word_arr == @correct) || (@guesses == 0) || (@save == true) do 
+      puts "\n\nWhat is your guess?"
+      user_guess = gets.chomp
+      evaluate(user_guess)
+    end 
 
-
-  def save_game
-    puts "What username would you like to use to save your game?"
-    username = gets.chomp
-    dirname = "saved_games"
-    Dir.mkdir(dirname) unless File.exist? dirname
-    puts "You game file is called 'saved_games/game_#{username}.yml"
+    if @guesses == 0
+      puts " The word you were looking for was '#{@word}'\n\n"
     
-    filename = "saved_games/game_#{username}.yml"
-    File.open(filename, 'w') { |f| YAML.dump([] << self, f) }
-    exit
-  end 
-
-  def load_game
-    unless Dir.exist?('saved_games')
-      puts 'No saved games found. Starting new game...'
-      sleep(5)
-      return
-    end
-    games = saved_games
-    puts games
-    deserialize(load_file(games))
-  end
-
-  def load_file(games)
-    loop do
-      puts "What username did you use to save your game?"
-      username = gets.chomp
-      return username if games.include?("game_#{username}.yml")
-      puts 'The game you requested does not exist.'
-    end
-  end
-
-  def deserialize(load_file)
-    yaml = YAML.load_file("./saved_games/game_#{username}.yml")
-    self.word = yaml[0].word
-    self.word_arr = yaml[0].word_arr
-    self.guesses = yaml[0].guesses
-    self.correct = yaml[0].correct
-    self.incorrect = yaml[0].incorrect
-    self.save = yaml[0].save
-  end
+    elsif @word_arr == @correct
+      puts "YOU WIN! You are a master wordsmith. Congratulations!\n\n"
+    
+    elsif @save == true
+      puts "You have chosen to save and exit. To reopen this game, start Hangman and type 'open' when prompted."
+    else
+      puts "Hmm something is not working properly..\n\n"
+    end 
+  end  
 
   def evaluate(guess)
     if guess == 'save'
@@ -161,27 +138,58 @@ class PlayGame < GameBoard
     puts "Incorrect guesses: #{@incorrect.join}"
     puts "Remaining guesses: #{@guesses}"
   end 
+
+  def save_game
+    puts "What username would you like to use to save your game?"
+    username = gets.chomp
+    dirname = "saved_games"
+    Dir.mkdir(dirname) unless File.exist? dirname
+    puts "You game file is called 'saved_games/game_#{username}.yml"
+    
+    filename = "saved_games/game_#{username}.yml"
+    File.open(filename, 'w') { |f| YAML.dump([] << self, f) }
+    exit
+  end 
+
   
 
-  def play
-    until (@word_arr == @correct) || (@guesses == 0) || (@save == true) do 
-      puts "\n\nWhat is your guess?"
-      user_guess = gets.chomp
-      evaluate(user_guess)
-    end 
+  def self.load_game
+    unless Dir.exist?('saved_games')
+      puts 'No saved games found. Starting new game...'
+      sleep(5)
+      return
+    end
+    games = saved_games
+    deserialize(load_file(games))
+  end
 
-    if @guesses == 0
-      puts " The word you were looking for was '#{@word}'\n\n"
-    
-    elsif @word_arr == @correct
-      puts "YOU WIN! You are a master wordsmith. Congratulations!\n\n"
-    
-    elsif @save == true
-      puts "You have chosen to save and exit. To reopen this game, start Hangman and type 'open' when prompted."
-    else
-      puts "Hmm something is not working properly..\n\n"
-    end 
-  end  
+  def self.load_file(games)
+    loop do
+      puts "What username did you use to save your game?"
+      username = gets.chomp
+      file = "game_#{username}"
+      return username if saved_games.include?(file)
+      puts 'The game you requested does not exist.'
+    end
+  end 
+
+  def self.deserialize(username)
+    yaml = YAML.load_file("./saved_games/game_#{username}.yml")
+     
+    @word = yaml[0].word
+    @word_arr = yaml[0].word_arr
+    @guesses = yaml[0].guesses
+    @correct = yaml[0].correct
+    @incorrect = yaml[0].incorrect
+    @save = yaml[0].save 
+
+    #  PlayGame.new(@word, @guesses)
+  end
+
+  def self.saved_games
+    Dir['./saved_games/*'].map { |file| file.split('/')[-1].split('.')[0] }
+  end
+
 end 
 
 

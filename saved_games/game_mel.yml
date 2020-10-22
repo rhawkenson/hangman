@@ -1,24 +1,32 @@
 ---
 - !ruby/object:PlayGame
-  word: espouse
+  word: exorbitance
   word_arr:
   - e
-  - s
-  - p
+  - x
   - o
-  - u
-  - s
+  - r
+  - b
+  - i
+  - t
+  - a
+  - n
+  - c
   - e
   guesses: 8
   correct:
   - _
-  - s
+  - _
+  - _
+  - r
   - _
   - _
   - _
-  - s
+  - a
+  - _
+  - _
   - _
   incorrect:
-  - a
   - d
+  - f
   save: true
